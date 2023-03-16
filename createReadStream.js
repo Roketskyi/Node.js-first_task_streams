@@ -1,28 +1,33 @@
-const fs = require('fs');
+const fs = require('fs')
+const readStream = fs.createReadStream('test.txt', { highWaterMark: 13 })
 
-let lastWordIncomplete = '';
-let wordCount = 0;
-
-const readStream = fs.createReadStream('file.txt');
+let wordCounter = 0;
+let isLetter = false;
 
 readStream.on('data', (chunk) => {
-  const text = chunk.toString();
-  const words = text.split(/\s+/);
-  
-  words[0] = lastWordIncomplete + words[0];
-  lastWordIncomplete = words.pop();
+  const chunkToString = chunk.toString();
 
-  wordCount += words.length;
-});
+  console.log(chunkToString)
 
-readStream.on('end', () => {
-  if (lastWordIncomplete) {
-    wordCount++;
+  for (let i = 0; i < chunkToString.length; i++) {
+    if ((chunkToString[i] >= 'a' && chunkToString[i] <= 'z') || (chunkToString[i] >= 'A' && chunkToString[i] <= 'Z')) {
+      isLetter = true;
+    } else {
+      if(isLetter === true) {
+        wordCounter++;
+      }
+
+      isLetter = false;
+    }
   }
 
-  console.log(`Кількість слів у файлі: ${wordCount}`);
-});
+  console.log('-------------')
+})
 
-readStream.on('error', (err) => {
-  console.log(err);
-});
+readStream.on('end', () => {
+  if(isLetter === true) {
+    wordCounter++;
+  }
+
+  console.log('Good job', wordCounter)
+})
